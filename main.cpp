@@ -31,8 +31,9 @@ int main()
 {
     int image[784];
     ifstream infile;
+    int guess;
    // ofstream outfile;
-    int largeNum = 0;
+    int largeNum;
     string line;
     int num = 0;
 
@@ -63,15 +64,18 @@ int main()
         dotProd(image,784, 100, "lvl1");   //Layer1
         dotProd(image2, 100, 10, "lvl2");   //Layer2
 
+
+        largeNum = output[0];
         for (int i = 0; i < 10; i++)        //Looking through array to find largest number
         {
             if (output[i] > largeNum)
             {
-                largeNum = i+1;
+                largeNum = output[i];
+                guess = i+1;
             }
         }
 
-        cout << "The value is: " << largeNum << endl;
+        cout << "The value is: " << guess << endl;
 
 
     }
@@ -82,8 +86,6 @@ int main()
 //Dot product function....there might be something wrong here
 void dotProd(int * image, int numRow, int numCol, string whichLvl)
 {
-    int tot = 0;
-    int pos = 0;
     int sum = 0;
     for (int i = 0; i < numCol; i++)
     {
@@ -92,34 +94,16 @@ void dotProd(int * image, int numRow, int numCol, string whichLvl)
         {
             if (whichLvl == "lvl1")
             {
-
-            tot++;
-            if (weight2[i][j] > 0)
-            {
-                pos++;
-                //cout << image[j] << ", ";
-                //cout << weight2[i][j] << "; ";
-                //cout << sum << ", ";
-            }
-
                 sum += image[j] * weight1[i][j];
-                //cout << sum << ", ";
             }
             else if (whichLvl == "lvl2")   //This step gives negative numbers which reLU makes = 0
             {
-            tot++;
-            if (weight2[i][j] > 0)
-            {
-                pos++;
-                //cout << image[j] << ", ";
-                //cout << weight2[i][j] << "; ";
-                //cout << sum << ", ";
-            }
-                sum += image[j] * weight2[i][j];
+                //cout << sum << endl;
+                //cout << image2[j] << "*" << weight2[i][j] << " = " << image2[j] * weight2[i][j] << endl;
+                sum += image2[j] * weight2[i][j];
+                //cout << sum << endl << endl;
             }
         }
-        //cout << pos << "/" << tot << endl;
-        //cout << endl;
 
         if (whichLvl == "lvl1")
         {
@@ -128,9 +112,8 @@ void dotProd(int * image, int numRow, int numCol, string whichLvl)
         else if (whichLvl == "lvl2")
         {
             //cout << sum+bias2[i] << ", ";
-            output[i] = reLU((sum+bias2[i]));
+            output[i] = ((sum+bias2[i]));
         }
-
     }
 
 }
@@ -140,6 +123,10 @@ int reLU(int input)
     if (input < 0)
     {
         return 0;
+    }
+    else if (input > 15)
+    {
+        return 15;
     }
     else
     {
