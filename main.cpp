@@ -15,11 +15,10 @@ using namespace std;
 
 void imWeight(string wFile, string outFile, int numRow, int numCol, string whichWeight);
 void imBias(string bfile, int numCol, string whichBias);
-int reLU(int input);
 void dotProd(int * image, int numRow, int numCol, string whichLvl);
 
-int weight1[784][100];
-int weight2[100][10];
+int weight1[100][784];
+int weight2[10][100];
 int bias1[100];
 int bias2[10];
 
@@ -64,19 +63,18 @@ int main()
         dotProd(image,784, 100, "lvl1");   //Layer1
         dotProd(image2, 100, 10, "lvl2");   //Layer2
 
-
         largeNum = output[0];
+        guess = 1;
         for (int i = 0; i < 10; i++)        //Looking through array to find largest number
         {
             if (output[i] > largeNum)
             {
                 largeNum = output[i];
-                guess = i+1;
+                guess = i;
             }
         }
 
-        cout << "The value is: " << guess << endl;
-
+        cout << guess << "\t";
 
     }
 
@@ -86,12 +84,20 @@ int main()
 //Dot product function....there might be something wrong here
 void dotProd(int * image, int numRow, int numCol, string whichLvl)
 {
+    #pragma HLS inline
+    #pragma HLS INTERFACE ap_ctrl_none port=return
+    #pragma HLS INTERFACE s_axilite port=image
+    #pragma HLS INTERFACE s_axilite port=numRow
+    #pragma HLS INTERFACE s_axilite port=numCol
+    #pragma HLS INTERFACE s_axilite port=whichLvl
+
     int sum = 0;
     for (int i = 0; i < numCol; i++)
     {
         sum = 0;
         for (int j = 0; j < numRow; j++)
         {
+        #pragma HLS loop_flatten
             if (whichLvl == "lvl1")
             {
                 sum += image[j] * weight1[i][j];
@@ -107,46 +113,42 @@ void dotProd(int * image, int numRow, int numCol, string whichLvl)
 
         if (whichLvl == "lvl1")
         {
-            image2[i] = reLU((sum+bias1[i]));
+            sum += bias1[i];
+
+            if(sum < 0) {image2[i] = 0;}
+            else if (sum >= 0) {image2[i] = sum;}
+
         }
         else if (whichLvl == "lvl2")
         {
-            //cout << sum+bias2[i] << ", ";
-            output[i] = ((sum+bias2[i]));
+            sum += bias2[i];
+
+            if(sum < 0) {output[i] = 0;}
+            else if (sum >= 0) {output[i] = sum; }
         }
     }
 
-}
-
-int reLU(int input)
-{
-    if (input < 0)
-    {
-        return 0;
-    }
-    else if (input > 15)
-    {
-        return 15;
-    }
-    else
-    {
-        return input;
-    }
 }
 
 
 void imBias(string bfile, int numCol, string whichBias)  //Code to import bias from text file
 {
+    #pragma HLS inline
+    #pragma HLS INTERFACE ap_ctrl_none port=return
+    #pragma HLS INTERFACE s_axilite port=bfile
+    #pragma HLS INTERFACE s_axilite port=numCol
+    #pragma HLS INTERFACE s_axilite port=whichBias
+
     ifstream infile;
 
     infile.open(bfile);
 
     for (int i = 0; i < numCol; i++)
     {
+        #pragma HLS loop_flatten
         if (whichBias == "b1")
         {
             infile >> bias1[i];
-            //cout << bias1[i] << "\t";
         }
         else if (whichBias == "b2")
         {
@@ -162,6 +164,14 @@ void imBias(string bfile, int numCol, string whichBias)  //Code to import bias f
 
 void imWeight(string wFile, string outFile, int numRow, int numCol, string whichWeight)
 {
+    #pragma HLS inline
+    #pragma HLS INTERFACE ap_ctrl_none port=return
+    #pragma HLS INTERFACE s_axilite port=wFile
+    #pragma HLS INTERFACE s_axilite port=outFile
+    #pragma HLS INTERFACE s_axilite port=numRow
+    #pragma HLS INTERFACE s_axilite port=numCol
+    #pragma HLS INTERFACE s_axilite port=whichWeight
+
     ifstream file;
     ofstream outfile;
 
@@ -172,26 +182,22 @@ void imWeight(string wFile, string outFile, int numRow, int numCol, string which
     {
         for (int j = 0; j < numRow; j++)
         {
+        #pragma HLS loop_flatten
             if (whichWeight == "w1")
             {
                 file >> weight1[i][j];
                 outfile << weight1[i][j] << "\t";
-                //cout << weight1[j][i] << "\t";
             }
             else if (whichWeight == "w2")
             {
                 file >> weight2[i][j];
                 outfile << weight2[i][j] << "\t";
-                //cout << weight2[j][i] << "\t";
             }
         }
         outfile << endl;
-        //cout << endl;
     }
 
     file.close();
     outfile.close();
-
-
 }
 
