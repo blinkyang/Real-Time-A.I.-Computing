@@ -4,12 +4,6 @@
 #include <cmath>
 #include <sstream>
 
-/*
-I'm using globals in this example because i was having issues with setting 2D arrays as parameters for the functions.
-Should work anyways but just a heads up.
-
-
-*/
 
 using namespace std;
 
@@ -81,7 +75,7 @@ int main()
     return 0;
 }
 
-//Dot product function....there might be something wrong here
+//Dot product function
 void dotProd(int * image, int numRow, int numCol, string whichLvl)
 {
     #pragma HLS inline
